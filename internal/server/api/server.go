@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	srv "github.com/egregors/rates/internal/server"
 	lib "github.com/egregors/rates/lib/http"
@@ -22,12 +22,13 @@ func New(rp srv.RateProvider, l srv.Logger) *Server {
 		r:  chi.NewRouter(),
 		l:  l,
 	}
+
 	s.r.Use(middleware.Logger)
 	s.r.Use(middleware.Recoverer)
 	s.r.Use(middleware.StripSlashes)
 
-	s.r.Get("/currency", s.getCurrencyList)
-	s.r.Get("/rate/{from}/{to}", s.getRate)
+	s.r.Get("/api/v0/currency", s.getCurrencyList)
+	s.r.Get("/api/v0/rate/{from}/{to}", s.getRate)
 
 	return s
 }
@@ -70,6 +71,6 @@ func (s *Server) getCurrencyList(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) Run() error {
 	// TODO: get port from env
-	s.l.Printf("[INFO] server is running on :8080")
+	s.l.Printf("[INFO] api server is running on :8080")
 	return http.ListenAndServe(":8080", s.r)
 }

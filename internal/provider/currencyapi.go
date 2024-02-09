@@ -16,17 +16,19 @@ const (
 // TODO: add TTL
 // TODO: add cache invalidation
 // TODO: add check if the rate is outdated
+// TODO: add integration tests
+
 type CurrencyAPI struct {
-	inMemRates        cache.InMem[map[string]float64]
-	inMemCurrencyList cache.InMem[string]
+	inMemRates        Cache[map[string]float64]
+	inMemCurrencyList Cache[string]
 
 	l Logger
 }
 
 func NewCurrencyAPI(l Logger) *CurrencyAPI {
 	return &CurrencyAPI{
-		inMemRates:        *cache.NewInMem[map[string]float64](),
-		inMemCurrencyList: *cache.NewInMem[string](),
+		inMemRates:        cache.NewInMem[map[string]float64](),
+		inMemCurrencyList: cache.NewInMem[string](),
 		l:                 l,
 	}
 }

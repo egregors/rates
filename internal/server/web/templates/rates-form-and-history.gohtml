@@ -1,0 +1,49 @@
+{{- /*gotype: github.com/egregors/rates/internal/server/web.Data*/ -}}
+
+{{ template "base" . }}
+
+{{ define "content" }}
+    <div id="table-and-form">
+        <h2>Rates</h2>
+
+        <form hx-post="/rates" hx-target="#table-and-form">
+            <label>
+                From
+                <select name="from">
+                    {{ range .Currencies }}
+                        <option value="{{ .Code }}">{{ .Code }} - {{ .Title }}</option>
+                    {{ end }}
+                </select>
+            </label>
+            <label>
+                To
+                <select name="to">
+                    {{ range .Currencies }}
+                        <option value="{{ .Code }}">{{ .Code }} - {{ .Title }}</option>
+                    {{ end }}
+                </select>
+            </label>
+            <button type="submit">Get rate</button>
+        </form>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>==</th>
+            </tr>
+            </thead>
+            <tbody id="contacts-table">
+            {{ range .History }}
+                <tr>
+                    <td>{{ .From  }}</td>
+                    <td>{{ .To }}</td>
+                    <td>{{ .Rate }}</td>
+                </tr>
+            {{ end }}
+            </tbody>
+        </table>
+
+    </div>
+{{ end }}
