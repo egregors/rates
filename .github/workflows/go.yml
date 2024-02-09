@@ -1,0 +1,34 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -count=100 -v ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3.7.0
+        with:
+          version: latest
+          timeout: 10m
+          enable: true
+          fast: false
+          config: .golangci.yml
+          format: 'github-actions'
