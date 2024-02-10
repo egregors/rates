@@ -12,7 +12,8 @@
                     <form hx-post="/rates" hx-target="#prompt-and-history">
                         <div class="input-group input-group-lg">
                             <span class="input-group-text" id="inputGroup-sizing-lg">Convert</span>
-                            <input name="prompt" type="text" class="form-control" aria-describedby="inputGroup-sizing-lg" autofocus
+                            <input name="prompt" type="text" class="form-control"
+                                   aria-describedby="inputGroup-sizing-lg" autofocus
                                    placeholder="69 eur to usd">
                         </div>
                         <input type="submit" hidden>
@@ -21,17 +22,10 @@
 
                     <table class="table">
                         <thead>
-                        <tr>
-                            <th>From</th>
-                            <th>To</th>
-                            <th>==</th>
-                        </tr>
                         </thead>
                         <tbody id="contacts-table">
                         {{ range .History }}
                             <tr>
-                                <td>{{ .From  }}</td>
-                                <td>{{ .To }}</td>
                                 <td>{{ .Rate }}</td>
                             </tr>
                         {{ end }}

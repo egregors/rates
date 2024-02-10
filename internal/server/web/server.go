@@ -3,13 +3,14 @@ package web
 import (
 	"embed"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"html/template"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	srv "github.com/egregors/rates/internal/server"
 )
@@ -85,52 +86,45 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := tmpl.Execute(w, Data{
+			Currencies: s.currencies,
+			History:    s.histories[r.RemoteAddr],
+		}); err != nil {
+			s.l.Printf("failed to render template: %v", err)
+			http.Error(w, "failed to render template", http.StatusInternalServerError)
+		}
+	}()
+
 	prompt := r.FormValue("prompt")
 	from, to, amount, err := parsePrompt(prompt)
 	if err != nil {
 		s.l.Printf("failed to parse prompt: %v", err)
-		http.Error(w, "invalid prompt", http.StatusBadRequest)
+		s.pushToHistory(r.RemoteAddr, "", "", fmt.Sprintf("invalid prompt: %s", prompt))
+
 		return
 	}
 
 	rate, err := s.rp.GetRate(from, to)
 	if err != nil {
 		s.l.Printf("failed to get rate: %v", err)
-		// TODO: return error widget instead of 500
-		http.Error(w, "failed to get rate", http.StatusInternalServerError)
+		s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("failed to get rate: %v", err))
+
 		return
 	}
 
-	s.histories[r.RemoteAddr] = append(
-		s.histories[r.RemoteAddr],
+	s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("%.2f %s is %.2f %s", amount, from, amount*rate, to))
+}
+
+func (s *Server) pushToHistory(key, from, to, text string) {
+	s.histories[key] = append(
+		s.histories[key],
 		RateReq{
 			from,
 			to,
-			fmt.Sprintf("%.2f %s -> %.2f %s", amount, from, amount*rate, to),
+			text,
 		},
 	)
-
-	if err := tmpl.Execute(w, Data{
-		Currencies: s.currencies,
-		History:    s.histories[r.RemoteAddr],
-	}); err != nil {
-		s.l.Printf("failed to render template: %v", err)
-		http.Error(w, "failed to render template", http.StatusInternalServerError)
-	}
-}
-
-func parsePrompt(prompt string) (from, to string, amount float64, err error) {
-	xs := strings.Split(prompt, " ")
-	if len(xs) != 4 {
-		return "", "", 0, fmt.Errorf("invalid prompt: %s", prompt)
-	}
-
-	amount, err = strconv.ParseFloat(xs[0], 64)
-	if err != nil {
-		return "", "", 0, fmt.Errorf("invalid amount: %s", xs[0])
-	}
-
-	return strings.ToLower(xs[1]), strings.ToLower(xs[3]), amount, nil
 }
 
 func (s *Server) prepareCurrencies() []Currency {
@@ -151,4 +145,18 @@ func (s *Server) prepareCurrencies() []Currency {
 	})
 
 	return currencies
+}
+
+func parsePrompt(prompt string) (from, to string, amount float64, err error) {
+	xs := strings.Split(prompt, " ")
+	if len(xs) != 4 {
+		return "", "", 0, fmt.Errorf("invalid prompt: %s", prompt)
+	}
+
+	amount, err = strconv.ParseFloat(xs[0], 64)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("invalid amount: %s", xs[0])
+	}
+
+	return strings.ToLower(xs[1]), strings.ToLower(xs[3]), amount, nil
 }
