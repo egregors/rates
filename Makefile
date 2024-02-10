@@ -14,8 +14,8 @@ test: ## Run tests
 	go test ./... -count=1
 
 .PHONY: run
-run: ## Run the application
-	go run cmd/main.go
+run: ## Run the application with watcher (go, gohtml)
+	watchexec -e go,gohtml -c -r -- go run cmd/main.go
 
 ## Help
 
