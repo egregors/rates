@@ -3,48 +3,43 @@
 {{ template "base" . }}
 
 {{ define "content" }}
-    <div id="table-and-form">
-        <h2>Rates</h2>
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="row">
+            <div class="col-md-auto">
+                <div id="prompt-and-history">
+                    <h2 class="text-center">💶 Rates 💵</h2>
 
-        <form hx-post="/rates" hx-target="#table-and-form">
-            <label>
-                From
-                <select name="from">
-                    {{ range .Currencies }}
-                        <option value="{{ .Code }}">{{ .Code }} - {{ .Title }}</option>
-                    {{ end }}
-                </select>
-            </label>
-            <label>
-                To
-                <select name="to">
-                    {{ range .Currencies }}
-                        <option value="{{ .Code }}">{{ .Code }} - {{ .Title }}</option>
-                    {{ end }}
-                </select>
-            </label>
-            <button type="submit">Get rate</button>
-        </form>
-        <br>
+                    <form hx-post="/rates" hx-target="#prompt-and-history">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text" id="inputGroup-sizing-lg">Convert</span>
+                            <input name="prompt" type="text" class="form-control" aria-describedby="inputGroup-sizing-lg" autofocus
+                                   placeholder="69 eur to usd">
+                        </div>
+                        <input type="submit" hidden>
+                    </form>
+                    <br>
 
-        <table class="table">
-            <thead>
-            <tr>
-                <th>From</th>
-                <th>To</th>
-                <th>==</th>
-            </tr>
-            </thead>
-            <tbody id="contacts-table">
-            {{ range .History }}
-                <tr>
-                    <td>{{ .From  }}</td>
-                    <td>{{ .To }}</td>
-                    <td>{{ .Rate }}</td>
-                </tr>
-            {{ end }}
-            </tbody>
-        </table>
-
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>==</th>
+                        </tr>
+                        </thead>
+                        <tbody id="contacts-table">
+                        {{ range .History }}
+                            <tr>
+                                <td>{{ .From  }}</td>
+                                <td>{{ .To }}</td>
+                                <td>{{ .Rate }}</td>
+                            </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+
 {{ end }}
