@@ -52,14 +52,8 @@ func (s *Server) convert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lib.RespJSON(w, http.StatusOK, struct {
-		From   string  `json:"from"`
-		To     string  `json:"to"`
-		Amount float64 `json:"amount"`
 		Result float64 `json:"result"`
 	}{
-		From:   req.From,
-		To:     req.To,
-		Amount: req.Amount,
 		Result: result,
 	})
 }

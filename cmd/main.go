@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"github.com/egregors/rates/conv"
-	"github.com/egregors/rates/internal/backends"
+	"github.com/egregors/rates/conv/backends"
 	"github.com/egregors/rates/internal/server/api"
 	"github.com/egregors/rates/internal/server/web"
 	"github.com/egregors/rates/lib/cache"

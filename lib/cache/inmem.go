@@ -1,6 +1,8 @@
 package cache
 
-import "sync"
+import (
+	"sync"
+)
 
 type InMem[T any] struct {
 	cache map[string]T

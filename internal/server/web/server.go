@@ -80,8 +80,13 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 	defer func() {
+		history := s.histories[r.RemoteAddr]
+		if len(history) > 5 {
+			history = history[:5]
+		}
+
 		if err := tmpl.Execute(w, Data{
-			History: s.histories[r.RemoteAddr],
+			History: history,
 		}); err != nil {
 			s.l.Printf("failed to render template: %v", err)
 			http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -110,12 +115,14 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) pushToHistory(key, from, to, text string) {
 	s.histories[key] = append(
-		s.histories[key],
-		RateReq{
-			from,
-			to,
-			text,
+		[]RateReq{
+			{
+				from,
+				to,
+				text,
+			},
 		},
+		s.histories[key]...,
 	)
 }
 
