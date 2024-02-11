@@ -12,6 +12,9 @@ rates – Currency converter lib + API with a simple GUI
 * [TODO] Dockerfile
 * [TODO] Tests
 
+> [!WARNING]  
+> Stable version is not released yet. The API and the lib are under development.
+
 ---
 
 ## Usage
