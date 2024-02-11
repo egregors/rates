@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -33,26 +32,23 @@ type Currency struct {
 }
 
 type Data struct {
-	Currencies []Currency
-	History    []RateReq
+	History []RateReq
 }
 
 type Server struct {
-	currencies []Currency
-	histories  map[string][]RateReq
+	histories map[string][]RateReq
 
-	rp srv.RateProvider
-	r  chi.Router
-	l  srv.Logger
+	c srv.Converter
+	r chi.Router
+	l srv.Logger
 }
 
-func New(rp srv.RateProvider, l srv.Logger) *Server {
+func New(conv srv.Converter, l srv.Logger) *Server {
 	s := &Server{
-		currencies: nil,
-		histories:  make(map[string][]RateReq),
-		rp:         rp,
-		r:          chi.NewRouter(),
-		l:          l,
+		histories: make(map[string][]RateReq),
+		c:         conv,
+		r:         chi.NewRouter(),
+		l:         l,
 	}
 
 	s.r.Use(middleware.Logger)
@@ -63,8 +59,6 @@ func New(rp srv.RateProvider, l srv.Logger) *Server {
 	s.r.Post("/rates", s.getRatesAndHistory)
 
 	s.r.Handle("/static/*", http.FileServer(http.FS(static)))
-
-	s.currencies = s.prepareCurrencies()
 
 	return s
 }
@@ -77,8 +71,7 @@ func (s *Server) Run() error {
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 	if err := tmpl.Execute(w, Data{
-		Currencies: s.currencies,
-		History:    s.histories[r.RemoteAddr],
+		History: s.histories[r.RemoteAddr],
 	}); err != nil {
 		s.l.Printf("failed to render template: %v", err)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -88,8 +81,7 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := tmpl.Execute(w, Data{
-			Currencies: s.currencies,
-			History:    s.histories[r.RemoteAddr],
+			History: s.histories[r.RemoteAddr],
 		}); err != nil {
 			s.l.Printf("failed to render template: %v", err)
 			http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -105,15 +97,15 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rate, err := s.rp.GetRate(from, to)
+	res, err := s.c.Conv(amount, from, to)
 	if err != nil {
-		s.l.Printf("failed to get rate: %v", err)
-		s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("failed to get rate: %v", err))
+		s.l.Printf("failed to convert: %v", err)
+		s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("failed to convert: %v", err))
 
 		return
 	}
 
-	s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("%.2f %s is %.2f %s", amount, from, amount*rate, to))
+	s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("%.2f %s is %.2f %s", amount, from, res, to))
 }
 
 func (s *Server) pushToHistory(key, from, to, text string) {
@@ -125,26 +117,6 @@ func (s *Server) pushToHistory(key, from, to, text string) {
 			text,
 		},
 	)
-}
-
-func (s *Server) prepareCurrencies() []Currency {
-	cs, err := s.rp.GetCurrencyList()
-	if err != nil {
-		s.l.Printf("failed to get currency list: %v", err)
-		// TODO: don't panic
-		panic(err)
-	}
-
-	currencies := make([]Currency, 0, len(cs))
-	for c, t := range cs {
-		currencies = append(currencies, Currency{c, t})
-	}
-
-	sort.SliceStable(currencies, func(i, j int) bool {
-		return currencies[i].Code < currencies[j].Code
-	})
-
-	return currencies
 }
 
 func parsePrompt(prompt string) (from, to string, amount float64, err error) {

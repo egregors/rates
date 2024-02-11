@@ -11,61 +11,56 @@ import (
 )
 
 type Server struct {
-	rp srv.RateProvider
-	r  chi.Router
-	l  srv.Logger
+	c srv.Converter
+	r chi.Router
+	l srv.Logger
 }
 
-func New(rp srv.RateProvider, l srv.Logger) *Server {
+func New(conv srv.Converter, l srv.Logger) *Server {
 	s := &Server{
-		rp: rp,
-		r:  chi.NewRouter(),
-		l:  l,
+		c: conv,
+		r: chi.NewRouter(),
+		l: l,
 	}
 
 	s.r.Use(middleware.Logger)
 	s.r.Use(middleware.Recoverer)
 	s.r.Use(middleware.StripSlashes)
 
-	s.r.Get("/api/v0/currency", s.getCurrencyList)
-	s.r.Get("/api/v0/rate/{from}/{to}", s.getRate)
+	s.r.Post("/api/v0/convert", s.convert)
 
 	return s
 }
 
-// getRate gets the rate between two currencies from provider and writes it to the response like JSON
-func (s *Server) getRate(w http.ResponseWriter, r *http.Request) {
-	from := chi.URLParam(r, "from")
-	to := chi.URLParam(r, "to")
+// convert converts the amount from one currency to another and writes the result to the response like JSON
+func (s *Server) convert(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		From   string  `json:"from"`
+		To     string  `json:"to"`
+		Amount float64 `json:"amount,string"`
+	}
 
-	rate, err := s.rp.GetRate(from, to)
+	if err := lib.DecodeJSON(r, &req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := s.c.Conv(req.Amount, req.From, req.To)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	lib.RespJSON(w, http.StatusOK, struct {
-		From string  `json:"from"`
-		To   string  `json:"to"`
-		Rate float64 `json:"rate"`
+		From   string  `json:"from"`
+		To     string  `json:"to"`
+		Amount float64 `json:"amount"`
+		Result float64 `json:"result"`
 	}{
-		From: from,
-		To:   to,
-		Rate: rate,
-	})
-}
-
-func (s *Server) getCurrencyList(w http.ResponseWriter, _ *http.Request) {
-	cs, err := s.rp.GetCurrencyList()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	lib.RespJSON(w, http.StatusOK, struct {
-		Currencies map[string]string `json:"currencies"`
-	}{
-		Currencies: cs,
+		From:   req.From,
+		To:     req.To,
+		Amount: req.Amount,
+		Result: result,
 	})
 }
 

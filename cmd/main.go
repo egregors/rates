@@ -1,32 +1,34 @@
 package main
 
 import (
-	"github.com/egregors/rates/internal/server/web"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/egregors/rates/internal/provider"
+	"github.com/egregors/rates/conv"
+	"github.com/egregors/rates/internal/backends"
 	"github.com/egregors/rates/internal/server/api"
+	"github.com/egregors/rates/internal/server/web"
+	"github.com/egregors/rates/lib/cache"
 )
 
 func main() {
 	logger := log.Default()
-
-	currencyAPI := provider.NewCurrencyAPI(logger)
+	c := conv.New(
+		backends.NewCurrencyAPI(),
+		conv.WithLogger(logger),
+		conv.WithCache(cache.NewInMem[map[string]float64]()),
+	)
 
 	go func() {
-		apiSrv := api.New(currencyAPI, logger)
-
-		if err := apiSrv.Run(); err != nil {
+		if err := api.New(c, logger).Run(); err != nil {
 			logger.Fatalf("server failed: %v", err)
 		}
 	}()
 
 	go func() {
-		webSrv := web.New(currencyAPI, logger)
-		if err := webSrv.Run(); err != nil {
+		if err := web.New(c, logger).Run(); err != nil {
 			logger.Fatalf("server failed: %v", err)
 		}
 	}()
