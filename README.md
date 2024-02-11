@@ -26,7 +26,7 @@ You can use the API as a standalone service.
 | [localhost:8080/](localhost:8080/) | http API                                                                |
 
 GUI example:
-// TODO: image
+![img](https://github.com/egregors/rates/assets/2153895/ddff6b77-175a-48bc-828d-c25933cf6921)
 
 API support methods:
 
