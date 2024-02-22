@@ -1,4 +1,4 @@
-package conv
+package rates
 
 import (
 	"fmt"

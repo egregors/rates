@@ -1,4 +1,4 @@
-package conv
+package rates
 
 type Logger interface {
 	Printf(format string, v ...interface{})
