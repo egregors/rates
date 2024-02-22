@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/egregors/rates/conv"
 	"github.com/egregors/rates/conv/backends"
@@ -18,7 +19,7 @@ func main() {
 	c := conv.New(
 		backends.NewCurrencyAPI(),
 		conv.WithLogger(logger),
-		conv.WithCache(cache.NewInMem[map[string]float64]()),
+		conv.WithCache(cache.NewInMem[map[string]float64](10*time.Second)),
 	)
 
 	go func() {

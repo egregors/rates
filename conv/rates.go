@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/egregors/rates/lib/cache"
 )
@@ -22,7 +23,7 @@ func New(provider RatesSource, opts ...Options) *Converter {
 
 	defaultOpts := []Options{
 		WithLogger(log.New(os.Stdout, "", log.LstdFlags)),
-		WithCache(cache.NewInMem[map[string]float64]()),
+		WithCache(cache.NewInMem[map[string]float64](6 * time.Hour)),
 	}
 
 	// init default options

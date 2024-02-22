@@ -8,7 +8,7 @@ rates – Currency converter lib + API with a simple GUI
 * Rates-source agnostic currency converter (make your own source by implementing the `conv.RatesSource` interface)
 * Simple GUI to convert currencies as a example of how to use the API
 * Cache for the rates to avoid unnecessary requests to the source
-* [TODO] Cache TTL option
+* Custom TTL for the cache
 * [TODO] Dockerfile
 * [TODO] Tests
 
