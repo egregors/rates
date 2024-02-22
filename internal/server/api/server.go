@@ -40,7 +40,7 @@ func (s *Server) convert(w http.ResponseWriter, r *http.Request) {
 		Amount float64 `json:"amount,string"`
 	}
 
-	if err := lib.DecodeJSON(r, &req); err != nil {
+	if err := lib.DecodeJSON(r.Body, &req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

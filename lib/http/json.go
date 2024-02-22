@@ -2,6 +2,7 @@ package lib
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 )
 
@@ -13,6 +14,6 @@ func RespJSON(w http.ResponseWriter, status int, data any) {
 }
 
 // DecodeJSON decodes a JSON request
-func DecodeJSON(r *http.Request, v any) error {
-	return json.NewDecoder(r.Body).Decode(v)
+func DecodeJSON(b io.Reader, v any) error {
+	return json.NewDecoder(b).Decode(v)
 }
