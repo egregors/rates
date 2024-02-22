@@ -15,7 +15,6 @@ rates – Currency converter lib + API with a simple GUI
 * Cache for the rates to avoid unnecessary requests to the source
 * Custom TTL for the cache
 * [TODO] Dockerfile
-* [TODO] Tests
 
 > [!WARNING]  
 > Stable version is not released yet. The API and the lib are under development.

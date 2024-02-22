@@ -17,6 +17,10 @@ test: ## Run tests
 run: ## Run the application with watcher (go, gohtml)
 	watchexec -e go,gohtml -c -r -- go run cmd/main.go
 
+.PHONY: gen
+gen: ## Generate mocks
+	go generate ./...
+
 ## Help
 
 .PHONY: help
