@@ -11,6 +11,6 @@ type Cache[T any] interface {
 	ToMap() map[string]T
 }
 
-type RatesSource interface {
+type Source interface {
 	Rate(from, to string) (float64, error)
 }

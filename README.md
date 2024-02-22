@@ -59,22 +59,27 @@ Date: Sun, 11 Feb 2024 14:02:17 GMT
 
 ### As a library
 
-You can use the `conv` package as a library in your own project.
+You can use the `rates` package as a library in your own project.
 
 ```go
 package main
 
 import (
 	"fmt"
+	"log"
+	"time"
 
-	"github.com/egregors/rates/conv"
-	"github.com/egregors/rates/conv/backends"
+	"github.com/egregors/rates"
+	"github.com/egregors/rates/backends"
+	"github.com/egregors/rates/lib/cache"
 )
 
 func main() {
 	// Create a new converter
-	c := conv.New(
+	c := rates.New(
 		backends.NewCurrencyAPI(),
+		rates.WithLogger(log.Default()),
+		rates.WithCache(cache.NewInMem[map[string]float64](6*time.Hour)),
 	)
 
 	// Convert 123.45 USD to EUR
@@ -89,19 +94,19 @@ func main() {
 
 ```
 
-`Conv` supports constructor options.
+`Converter` supports constructor options.
 
-* `conv.WithCache` – Enable cache for the rates
-* `conv.WithLogger` – Use custom logger for the requests
+* `rates.WithCache` – Enable cache for the rates
+* `rates.WithLogger` – Use custom logger for the requests
 
 ### Make your own rates source
 
-You can make your own rates source by implementing the `conv.RatesSource` interface.
+You can make your own rates source by implementing the `rates.Source` interface.
 
 ```go
-package conv
+package rates
 
-type RatesSource interface {
+type Source interface {
 	Rate(from, to string) (float64, error)
 }
 

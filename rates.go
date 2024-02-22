@@ -10,13 +10,13 @@ import (
 )
 
 type Converter struct {
-	rp RatesSource
+	rp Source
 
 	l     Logger
 	cache Cache[map[string]float64]
 }
 
-func New(provider RatesSource, opts ...Options) *Converter {
+func New(provider Source, opts ...Options) *Converter {
 	r := &Converter{
 		rp: provider,
 	}
