@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/egregors/rates"
-	"github.com/egregors/rates/backends"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/egregors/rates"
+	"github.com/egregors/rates/backends"
 	"github.com/egregors/rates/internal/server/api"
 	"github.com/egregors/rates/internal/server/web"
 	"github.com/egregors/rates/lib/cache"
@@ -18,8 +18,7 @@ func main() {
 	logger := log.Default()
 	c := rates.New(
 		backends.NewCurrencyAPI(),
-		//rates.WithLogger(logger),
-		rates.WithLogger(nil),
+		rates.WithLogger(logger),
 		rates.WithCache(cache.NewInMem[map[string]float64](10*time.Second)),
 	)
 

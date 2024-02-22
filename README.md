@@ -3,6 +3,11 @@
 rates – Currency converter lib + API with a simple GUI
 </div>
 
+[![Build Status](https://github.com/egregors/rates/workflows/build/badge.svg)](https://github.com/egregors/rates/actions) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/egregors/rates)](https://goreportcard.com/report/github.com/egregors/rates)
+[![Coverage Status](https://coveralls.io/repos/github/egregors/rates/badge.svg?branch=main)](https://coveralls.io/github/egregors/rates?branch=main)
+[![godoc](https://godoc.org/github.com/egregors/rates?status.svg)](https://godoc.org/github.com/egregors/rates)
+
 ---
 
 * Rates-source agnostic currency converter (make your own source by implementing the `conv.RatesSource` interface)
