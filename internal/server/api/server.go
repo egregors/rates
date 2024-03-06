@@ -18,6 +18,7 @@ type Server struct {
 
 func New(conv srv.Converter, l srv.Logger) *Server {
 	s := &Server{
+		// TODO: add conv pool
 		c: conv,
 		r: chi.NewRouter(),
 		l: l,
