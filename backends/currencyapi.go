@@ -7,18 +7,16 @@ import (
 	"net/http"
 )
 
-const (
-	CurrencyPairURL = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/%s/%s.json"
-)
+type CurrencyAPI struct {
+	url string
+}
 
-type CurrencyAPI struct{}
-
-func NewCurrencyAPI() *CurrencyAPI {
-	return &CurrencyAPI{}
+func NewCurrencyAPI(url string) *CurrencyAPI {
+	return &CurrencyAPI{url: url}
 }
 
 func (c *CurrencyAPI) Rate(from, to string) (float64, error) {
-	url := fmt.Sprintf(CurrencyPairURL, from, to)
+	url := fmt.Sprintf("%s%s.json", c.url, from)
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, err
@@ -38,10 +36,15 @@ func (c *CurrencyAPI) Rate(from, to string) (float64, error) {
 		return 0, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	if _, ok := payload[to]; !ok {
+	rates, ok := payload[from]
+	if !ok {
 		return 0, fmt.Errorf("rate not found: %s -> %s", from, to)
 	}
-	rate := map[string]float64{to: payload[to].(float64)}
 
-	return rate[to], nil
+	rate, ok := rates.(map[string]any)[to]
+	if !ok {
+		return 0, fmt.Errorf("rate not found: %s -> %s", from, to)
+	}
+
+	return rate.(float64), nil
 }
