@@ -16,22 +16,24 @@ import (
 
 func main() {
 	logger := log.Default()
-	cNPM := rates.New(
-		backends.NewCurrencyAPI("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/"),
+	r := rates.New(
+		[]rates.Source{
+			backends.NewCurrencyAPI("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/"),
+			backends.NewCurrencyAPI("https://currency-api.pages.dev/v1/currencies/"),
+		},
 		rates.WithLogger(logger),
-		rates.WithCache(cache.NewInMem[map[string]float64](10*time.Second)),
+		rates.WithCache(cache.NewInMem[map[string]float64](6*time.Hour)),
+		rates.WithStrategy(rates.Failover),
 	)
 
-	// TODO: add fallback backends: https://currency-api.pages.dev/v1/currencies/
-
 	go func() {
-		if err := api.New(cNPM, logger).Run(); err != nil {
+		if err := api.New(r, logger).Run(); err != nil {
 			logger.Fatalf("server failed: %v", err)
 		}
 	}()
 
 	go func() {
-		if err := web.New(cNPM, logger).Run(); err != nil {
+		if err := web.New(r, logger).Run(); err != nil {
 			logger.Fatalf("server failed: %v", err)
 		}
 	}()

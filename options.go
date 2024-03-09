@@ -30,3 +30,17 @@ func WithCache(c Cache[map[string]float64]) Options {
 		r.cache = c
 	}
 }
+
+type Strategy string
+
+const (
+	Failover Strategy = "failover"
+	Random   Strategy = "random"
+)
+
+// WithStrategy sets the strategy for the rates pool conv
+func WithStrategy(s Strategy) Options {
+	return func(r *Converter) {
+		r.strategy = s
+	}
+}

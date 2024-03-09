@@ -75,14 +75,19 @@ import (
 
 func main() {
 	// Create a new converter
-	c := rates.New(
-		backends.NewCurrencyAPI(),
-		rates.WithLogger(log.Default()),
+	logger := log.Default()
+	r := rates.New(
+		[]rates.Source{
+			backends.NewCurrencyAPI("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/"),
+			backends.NewCurrencyAPI("https://currency-api.pages.dev/v1/currencies/"),
+		},
+		rates.WithLogger(logger),
 		rates.WithCache(cache.NewInMem[map[string]float64](6*time.Hour)),
+		rates.WithStrategy(rates.Failover),
 	)
-
+	
 	// Convert 123.45 USD to EUR
-	result, err := c.Conv(123.45, "usd", "eur")
+	result, err := r.Conv(123.45, "usd", "eur")
 	if err != nil {
 		panic(err)
 	}
