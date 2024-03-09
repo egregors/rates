@@ -8,7 +8,7 @@
         <h1 style="text-align: center">💶 → 💵</h1>
         <form hx-post="/rates" hx-target="#content">
             <!--suppress HtmlFormInputWithoutLabel -->
-            <input type="text" name="prompt" placeholder="69 eur to uds"
+            <input type="text" name="prompt" placeholder="69 eur to uds" autofocus
                    {{ if .Error }}aria-invalid="true" {{ end }}/>
             {{ if .Error }}<small>{{.Error}}</small>{{ end }}
             <input type="submit" hidden>

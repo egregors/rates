@@ -10,20 +10,22 @@ import (
 )
 
 type Converter struct {
-	rp Source
+	pool     []Source
+	strategy Strategy
 
 	l     Logger
 	cache Cache[map[string]float64]
 }
 
-func New(provider Source, opts ...Options) *Converter {
+func New(providers []Source, opts ...Options) *Converter {
 	r := &Converter{
-		rp: provider,
+		pool: providers,
 	}
 
 	defaultOpts := []Options{
 		WithLogger(log.New(os.Stdout, "", log.LstdFlags)),
 		WithCache(cache.NewInMem[map[string]float64](6 * time.Hour)),
+		WithStrategy(Failover),
 	}
 
 	// init default options
@@ -40,6 +42,7 @@ func New(provider Source, opts ...Options) *Converter {
 }
 
 func (c *Converter) Conv(amount float64, from, to string) (float64, error) {
+	// get from cache
 	var cacheHasFrom bool
 	if r, ok := c.cache.Get(from); ok {
 		cacheHasFrom = true
@@ -49,20 +52,46 @@ func (c *Converter) Conv(amount float64, from, to string) (float64, error) {
 		}
 	}
 
-	r, err := c.rp.Rate(from, to)
-	if err != nil {
-		c.l.Printf("[ERROR] can't get rate: %v", err)
-		return 0, fmt.Errorf("failed to get rate: %w", err)
+	// get from source pool
+	switch c.strategy {
+	// start from first and try to get rate from each source in pool until success
+	case Failover:
+		for _, s := range c.pool {
+			r, err := s.Rate(from, to)
+			if err != nil {
+				c.l.Printf("[ERROR] can't get rate: %v", err)
+				continue
+			}
+
+			if cacheHasFrom {
+				curr, _ := c.cache.Get(from)
+				curr[to] = r
+				c.cache.Set(from, curr)
+			}
+
+			c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
+
+			return amount * r, nil
+		}
+
+		return 0, fmt.Errorf("failed to get rate: %w", fmt.Errorf("all sources failed"))
+	// just take first source from pool
+	default:
+		r, err := c.pool[0].Rate(from, to)
+		if err != nil {
+			c.l.Printf("[ERROR] can't get rate: %v", err)
+			return 0, fmt.Errorf("failed to get rate: %w", err)
+		}
+
+		if cacheHasFrom {
+			curr, _ := c.cache.Get(from)
+			curr[to] = r
+			c.cache.Set(from, curr)
+		}
+
+		c.cache.Set(from, map[string]float64{to: r})
+		c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
+
+		return amount * r, nil
 	}
-
-	if cacheHasFrom {
-		curr, _ := c.cache.Get(from)
-		curr[to] = r
-		c.cache.Set(from, curr)
-	}
-
-	c.cache.Set(from, map[string]float64{to: r})
-	c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
-
-	return amount * r, nil
 }
