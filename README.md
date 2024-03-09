@@ -114,7 +114,7 @@ type Source interface {
 `Rate` method should return the rate for the given currencies.
 
 As an example, you can check the `backends.CurrencyAPI` implementation.
-At this moment, it uses the [currency-api](https://github.com/fawazahmed0/currency-api) as the source.
+At this moment, it uses the [currency-api](https://github.com/fawazahmed0/exchange-api) as the source.
 
 ## Development
 

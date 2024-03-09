@@ -14,9 +14,10 @@ import (
 	srv "github.com/egregors/rates/internal/server"
 )
 
+const historySize = 5
+
 var tmpl = template.Must(template.ParseFiles(
 	"internal/server/web/templates/base.gohtml",
-	"internal/server/web/templates/index.gohtml",
 	"internal/server/web/templates/rates-form-and-history.gohtml",
 ))
 
@@ -33,6 +34,7 @@ type Currency struct {
 
 type Data struct {
 	History []RateReq
+	Error   string
 }
 
 type Server struct {
@@ -70,8 +72,13 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
+	history := s.histories[r.RemoteAddr]
+	if len(history) > historySize {
+		history = history[:historySize]
+	}
+
 	if err := tmpl.Execute(w, Data{
-		History: s.histories[r.RemoteAddr],
+		History: history,
 	}); err != nil {
 		s.l.Printf("failed to render template: %v", err)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -79,14 +86,17 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
+	var errMsg string
+
 	defer func() {
 		history := s.histories[r.RemoteAddr]
-		if len(history) > 5 {
-			history = history[:5]
+		if len(history) > historySize {
+			history = history[:historySize]
 		}
 
 		if err := tmpl.Execute(w, Data{
 			History: history,
+			Error:   errMsg,
 		}); err != nil {
 			s.l.Printf("failed to render template: %v", err)
 			http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -97,7 +107,7 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 	from, to, amount, err := parsePrompt(prompt)
 	if err != nil {
 		s.l.Printf("failed to parse prompt: %v", err)
-		s.pushToHistory(r.RemoteAddr, "", "", fmt.Sprintf("invalid prompt: %s", prompt))
+		errMsg = fmt.Sprintf("invalid prompt: %s", prompt)
 
 		return
 	}
@@ -105,7 +115,7 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 	res, err := s.c.Conv(amount, from, to)
 	if err != nil {
 		s.l.Printf("failed to convert: %v", err)
-		s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("failed to convert: %v", err))
+		errMsg = fmt.Sprintf("failed to convert: %v", err)
 
 		return
 	}
