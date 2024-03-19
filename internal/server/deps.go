@@ -1,5 +1,7 @@
 package server
 
+//go:generate mockgen -source=deps.go -destination=../../mocks/deps.go -package=mocks
+
 type Logger interface {
 	Printf(format string, v ...interface{})
 }
