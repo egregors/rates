@@ -9,7 +9,7 @@ import (
 	"github.com/egregors/rates/lib/cache"
 )
 
-type Converter struct {
+type Conv struct {
 	pool     []Source
 	strategy Strategy
 
@@ -17,8 +17,8 @@ type Converter struct {
 	cache Cache[map[string]float64]
 }
 
-func New(providers []Source, opts ...Options) *Converter {
-	r := &Converter{
+func New(providers []Source, opts ...Options) *Conv {
+	r := &Conv{
 		pool: providers,
 	}
 
@@ -41,15 +41,19 @@ func New(providers []Source, opts ...Options) *Converter {
 	return r
 }
 
-func (c *Converter) Conv(amount float64, from, to string) (float64, error) {
+func (c *Conv) Conv(amount float64, from, to string) (float64, error) {
 	// get from cache
-	var cacheHasFrom bool
-	if r, ok := c.cache.Get(from); ok {
-		cacheHasFrom = true
-		if r, ok := r[to]; ok {
-			c.l.Printf("[INFO] hit rates cache: %s -> %s = %f", from, to, r)
-			return amount * r, nil
+	rFrom, hasFrom := c.cache.Get(from)
+	if hasFrom {
+		rTo, hasTo := rFrom[to]
+		if hasTo {
+			c.l.Printf("[INFO] hit rates cache: %s -> %s = %f", from, to, rTo)
+			return amount * rTo, nil
 		}
+	}
+
+	if !hasFrom {
+		rFrom = make(map[string]float64)
 	}
 
 	// get from source pool
@@ -63,11 +67,8 @@ func (c *Converter) Conv(amount float64, from, to string) (float64, error) {
 				continue
 			}
 
-			if cacheHasFrom {
-				curr, _ := c.cache.Get(from)
-				curr[to] = r
-				c.cache.Set(from, curr)
-			}
+			rFrom[to] = r
+			c.cache.Set(from, rFrom)
 
 			c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
 
@@ -83,11 +84,8 @@ func (c *Converter) Conv(amount float64, from, to string) (float64, error) {
 			return 0, fmt.Errorf("failed to get rate: %w", err)
 		}
 
-		if cacheHasFrom {
-			curr, _ := c.cache.Get(from)
-			curr[to] = r
-			c.cache.Set(from, curr)
-		}
+		rFrom[to] = r
+		c.cache.Set(from, rFrom)
 
 		c.cache.Set(from, map[string]float64{to: r})
 		c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)

@@ -5,7 +5,7 @@ import (
 	"github.com/egregors/rates/lib/cache"
 )
 
-type Options func(*Converter)
+type Options func(*Conv)
 
 // WithLogger sets the logger for the rates conv
 func WithLogger(l Logger) Options {
@@ -14,7 +14,7 @@ func WithLogger(l Logger) Options {
 		l = &lib.NoopLogger{}
 	}
 
-	return func(r *Converter) {
+	return func(r *Conv) {
 		r.l = l
 	}
 }
@@ -26,7 +26,7 @@ func WithCache(c Cache[map[string]float64]) Options {
 		c = &cache.Noop[map[string]float64]{}
 	}
 
-	return func(r *Converter) {
+	return func(r *Conv) {
 		r.cache = c
 	}
 }
@@ -40,7 +40,7 @@ const (
 
 // WithStrategy sets the strategy for the rates pool conv
 func WithStrategy(s Strategy) Options {
-	return func(r *Converter) {
+	return func(r *Conv) {
 		r.strategy = s
 	}
 }

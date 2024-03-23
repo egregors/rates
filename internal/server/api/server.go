@@ -6,17 +6,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	srv "github.com/egregors/rates/internal/server"
+	"github.com/egregors/rates"
 	lib "github.com/egregors/rates/lib/http"
 )
 
 type Server struct {
-	c srv.Converter
+	c rates.Converter
 	r chi.Router
-	l srv.Logger
+	l rates.Logger
 }
 
-func New(conv srv.Converter, l srv.Logger) *Server {
+func New(conv rates.Converter, l rates.Logger) *Server {
 	s := &Server{
 		// TODO: add conv pool
 		c: conv,
