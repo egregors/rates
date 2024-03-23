@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/egregors/rates"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-
-	srv "github.com/egregors/rates/internal/server"
 )
 
 const historySize = 5
@@ -40,12 +39,12 @@ type Data struct {
 type Server struct {
 	histories map[string][]RateReq
 
-	c srv.Converter
+	c rates.Converter
 	r chi.Router
-	l srv.Logger
+	l rates.Logger
 }
 
-func New(conv srv.Converter, l srv.Logger) *Server {
+func New(conv rates.Converter, l rates.Logger) *Server {
 	s := &Server{
 		histories: make(map[string][]RateReq),
 		c:         conv,

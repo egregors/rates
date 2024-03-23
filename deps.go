@@ -14,3 +14,7 @@ type Cache[T any] interface {
 type Source interface {
 	Rate(from, to string) (float64, error)
 }
+
+type Converter interface {
+	Conv(amount float64, from, to string) (float64, error)
+}
