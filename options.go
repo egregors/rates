@@ -1,8 +1,8 @@
 package rates
 
 import (
-	"github.com/egregors/rates/lib"
-	"github.com/egregors/rates/lib/cache"
+	"github.com/egregors/rates/pkg"
+	"github.com/egregors/rates/pkg/cache"
 )
 
 type Options func(*Conv)
@@ -11,7 +11,7 @@ type Options func(*Conv)
 func WithLogger(l Logger) Options {
 	// if no logger is provided, use a noop logger
 	if l == nil {
-		l = &lib.NoopLogger{}
+		l = &pkg.NoopLogger{}
 	}
 
 	return func(r *Conv) {

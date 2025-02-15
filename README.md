@@ -70,7 +70,7 @@ import (
 
 	"github.com/egregors/rates"
 	"github.com/egregors/rates/backends"
-	"github.com/egregors/rates/lib/cache"
+	"github.com/egregors/rates/pkg/cache"
 )
 
 func main() {
@@ -85,7 +85,7 @@ func main() {
 		rates.WithCache(cache.NewInMem[map[string]float64](6*time.Hour)),
 		rates.WithStrategy(rates.Failover),
 	)
-	
+
 	// Convert 123.45 USD to EUR
 	result, err := r.Conv(123.45, "usd", "eur")
 	if err != nil {
@@ -112,6 +112,7 @@ package rates
 
 type Source interface {
 	Rate(from, to string) (float64, error)
+    Currencies() (map[string]string, error) 
 }
 
 ```

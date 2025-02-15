@@ -11,7 +11,7 @@ import (
 	"github.com/egregors/rates/backends"
 	"github.com/egregors/rates/internal/server/api"
 	"github.com/egregors/rates/internal/server/web"
-	"github.com/egregors/rates/lib/cache"
+	"github.com/egregors/rates/pkg/cache"
 )
 
 func main() {

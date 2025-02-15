@@ -1,4 +1,4 @@
-package lib
+package pkg
 
 // NoopLogger is a logger that does nothing.
 type NoopLogger struct{}

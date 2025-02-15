@@ -6,12 +6,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/egregors/rates/lib/cache"
+	"github.com/egregors/rates/pkg/cache"
 )
 
 type Conv struct {
-	pool     []Source
-	strategy Strategy
+	pool       []Source
+	strategy   Strategy
+	currencies map[string]string
 
 	l     Logger
 	cache Cache[map[string]float64]
@@ -36,6 +37,14 @@ func New(providers []Source, opts ...Options) *Conv {
 	// override by custom options
 	for _, o := range opts {
 		o(r)
+	}
+
+	// init currencies list
+	for _, s := range r.pool {
+		if cs, err := s.Currencies(); err == nil {
+			r.currencies = cs
+			break
+		}
 	}
 
 	return r
@@ -92,4 +101,8 @@ func (c *Conv) Conv(amount float64, from, to string) (float64, error) {
 
 		return amount * r, nil
 	}
+}
+
+func (c *Conv) Currencies() map[string]string {
+	return c.currencies
 }

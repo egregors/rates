@@ -1,12 +1,13 @@
 package rates
 
 import (
-	"github.com/egregors/rates/lib"
-	"github.com/egregors/rates/lib/cache"
 	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/egregors/rates/pkg"
+	"github.com/egregors/rates/pkg/cache"
 )
 
 func TestWithLogger(t *testing.T) {
@@ -21,7 +22,7 @@ func TestWithLogger(t *testing.T) {
 
 	// if WithLogger is called with nil, the default logger is used
 	assert.NotNil(t, New(nil, WithLogger(nil)).l)
-	assert.IsType(t, &lib.NoopLogger{}, New(nil, WithLogger(nil)).l)
+	assert.IsType(t, &pkg.NoopLogger{}, New(nil, WithLogger(nil)).l)
 }
 
 func TestWithCache(t *testing.T) {
