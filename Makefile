@@ -15,7 +15,7 @@ test: ## Run tests
 
 .PHONY: run
 run: ## Run the application with watcher (go, gohtml)
-	watchexec -e go,gohtml -c -r -- go run cmd/main.go
+	go run cmd/main.go
 
 ## Help
 
