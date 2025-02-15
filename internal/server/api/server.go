@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/egregors/rates"
-	lib "github.com/egregors/rates/lib/http"
+	lib "github.com/egregors/rates/pkg/http"
 )
 
 type Server struct {
