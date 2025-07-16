@@ -46,7 +46,7 @@ func (s *Server) convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := s.c.Conv(req.Amount, req.From, req.To)
+	result, err := s.c.Conv(rates.NewDecimal(req.Amount), req.From, req.To)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,7 +55,7 @@ func (s *Server) convert(w http.ResponseWriter, r *http.Request) {
 	lib.RespJSON(w, http.StatusOK, struct {
 		Result float64 `json:"result"`
 	}{
-		Result: result,
+		Result: result.Float64(),
 	})
 }
 

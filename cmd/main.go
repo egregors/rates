@@ -22,7 +22,7 @@ func main() {
 			backends.NewCurrencyAPI("https://currency-api.pages.dev/v1/currencies/"),
 		},
 		rates.WithLogger(logger),
-		rates.WithCache(cache.NewInMem[map[string]float64](6*time.Hour)),
+		rates.WithCache(cache.NewInMem[map[string]rates.Decimal](6*time.Hour)),
 		rates.WithStrategy(rates.Failover),
 	)
 

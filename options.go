@@ -20,10 +20,10 @@ func WithLogger(l Logger) Options {
 }
 
 // WithCache sets the cache for the rates conv
-func WithCache(c Cache[map[string]float64]) Options {
+func WithCache(c Cache[map[string]Decimal]) Options {
 	// if no cache is provided, use a noop cache
 	if c == nil {
-		c = &cache.Noop[map[string]float64]{}
+		c = &cache.Noop[map[string]Decimal]{}
 	}
 
 	return func(r *Conv) {
