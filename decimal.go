@@ -123,6 +123,17 @@ func (d Decimal) Mul(other Decimal) Decimal {
 	newValue := d.value * other.value
 	newScale := d.scale + other.scale
 	
+	// Prevent overflow by limiting scale and adjusting value if needed
+	if newScale > 18 { // Max practical scale
+		excess := newScale - 18
+		divisor := uint64(1)
+		for i := uint8(0); i < excess; i++ {
+			divisor *= 10
+		}
+		newValue = newValue / divisor
+		newScale = 18
+	}
+	
 	return Decimal{value: newValue, scale: newScale}
 }
 
