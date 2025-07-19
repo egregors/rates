@@ -62,19 +62,19 @@ func NewDecimalFromString(s string) Decimal {
 		// No fractional part after removing trailing zeros
 		val, err := strconv.ParseUint(intPart, 10, 64)
 		if err != nil {
-			return Decimal{value: 0, scale: 0}
+			return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse integer part: %v", err)
 		}
-		return Decimal{value: val, scale: 0}
+		return Decimal{value: val, scale: 0}, nil
 	}
 
 	// Combine integer and fractional parts
 	combined := intPart + fracPart
 	val, err := strconv.ParseUint(combined, 10, 64)
 	if err != nil {
-		return Decimal{value: 0, scale: 0}
+		return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse combined value: %v", err)
 	}
 
-	return Decimal{value: val, scale: scale}
+	return Decimal{value: val, scale: scale}, nil
 }
 
 // NewDecimalFromParts creates a new Decimal from value and scale
