@@ -163,13 +163,7 @@ func (d Decimal) Sub(other Decimal) Decimal {
 	d1 := d.normalize(maxScale)
 	d2 := other.normalize(maxScale)
 	
-	var newValue uint64
-	if d1.value >= d2.value {
-		newValue = d1.value - d2.value
-	} else {
-		// Result would be negative, return zero for now
-		newValue = 0
-	}
+	newValue := d1.value - d2.value
 	
 	return Decimal{value: newValue, scale: maxScale}
 }
