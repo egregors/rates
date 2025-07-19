@@ -7,10 +7,9 @@ import (
 )
 
 // Decimal represents a decimal number with arbitrary precision
-// using a uint64 value and uint8 scale (number of decimal places)
 type Decimal struct {
-	value uint64 // The actual number scaled by 10^scale
-	scale uint8  // Number of decimal places
+	value uint64 // scaled by 10^scale
+	scale uint8  // decimal places
 }
 
 // NewDecimal creates a new Decimal from a float64
@@ -19,7 +18,6 @@ func NewDecimal(f float64) Decimal {
 		return Decimal{value: 0, scale: 0}
 	}
 
-	// Convert to string to avoid precision issues
 	str := strconv.FormatFloat(f, 'f', -1, 64)
 	return NewDecimalFromString(str)
 }
@@ -28,53 +26,45 @@ func NewDecimal(f float64) Decimal {
 func NewDecimalFromString(s string) Decimal {
 	s = strings.TrimSpace(s)
 	
-	// Handle empty string
 	if s == "" {
 		return Decimal{value: 0, scale: 0}
 	}
 
-	// Find decimal point
 	dotIndex := strings.Index(s, ".")
 	if dotIndex == -1 {
-		// No decimal point, it's a whole number
 		val, err := strconv.ParseUint(s, 10, 64)
 		if err != nil {
-			return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse integer part: %v", err)
+			return Decimal{value: 0, scale: 0}
 		}
-		return Decimal{value: val, scale: 0}, nil
+		return Decimal{value: val, scale: 0}
 	}
 
-	// Split into integer and fractional parts
 	intPart := s[:dotIndex]
 	fracPart := s[dotIndex+1:]
 	
-	// Remove leading zeros from integer part
 	intPart = strings.TrimLeft(intPart, "0")
 	if intPart == "" {
 		intPart = "0"
 	}
 	
-	// Remove trailing zeros from fractional part
 	fracPart = strings.TrimRight(fracPart, "0")
 	
 	scale := uint8(len(fracPart))
 	if scale == 0 {
-		// No fractional part after removing trailing zeros
 		val, err := strconv.ParseUint(intPart, 10, 64)
 		if err != nil {
-			return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse integer part: %v", err)
+			return Decimal{value: 0, scale: 0}
 		}
-		return Decimal{value: val, scale: 0}, nil
+		return Decimal{value: val, scale: 0}
 	}
 
-	// Combine integer and fractional parts
 	combined := intPart + fracPart
 	val, err := strconv.ParseUint(combined, 10, 64)
 	if err != nil {
-		return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse combined value: %v", err)
+		return Decimal{value: 0, scale: 0}
 	}
 
-	return Decimal{value: val, scale: scale}, nil
+	return Decimal{value: val, scale: scale}
 }
 
 // NewDecimalFromParts creates a new Decimal from value and scale
@@ -100,7 +90,6 @@ func (d Decimal) String() string {
 
 	valueStr := strconv.FormatUint(d.value, 10)
 	
-	// Pad with zeros if needed
 	for len(valueStr) <= int(d.scale) {
 		valueStr = "0" + valueStr
 	}
@@ -108,7 +97,6 @@ func (d Decimal) String() string {
 	intPart := valueStr[:len(valueStr)-int(d.scale)]
 	fracPart := valueStr[len(valueStr)-int(d.scale):]
 	
-	// Remove trailing zeros from fractional part
 	fracPart = strings.TrimRight(fracPart, "0")
 	
 	if fracPart == "" {
@@ -123,7 +111,6 @@ func (d Decimal) Mul(other Decimal) Decimal {
 	newValue := d.value * other.value
 	newScale := d.scale + other.scale
 	
-	// Prevent overflow by limiting scale and adjusting value if needed
 	if newScale > 18 { // Max practical scale
 		excess := newScale - 18
 		divisor := uint64(1)
@@ -139,7 +126,6 @@ func (d Decimal) Mul(other Decimal) Decimal {
 
 // Add adds two Decimals
 func (d Decimal) Add(other Decimal) Decimal {
-	// Normalize to same scale
 	maxScale := d.scale
 	if other.scale > maxScale {
 		maxScale = other.scale
@@ -154,7 +140,6 @@ func (d Decimal) Add(other Decimal) Decimal {
 
 // Sub subtracts two Decimals
 func (d Decimal) Sub(other Decimal) Decimal {
-	// Normalize to same scale
 	maxScale := d.scale
 	if other.scale > maxScale {
 		maxScale = other.scale
@@ -175,13 +160,11 @@ func (d Decimal) normalize(targetScale uint8) Decimal {
 	}
 	
 	if d.scale < targetScale {
-		// Need to add decimal places
 		diff := targetScale - d.scale
 		multiplier := uint64(math.Pow10(int(diff)))
 		return Decimal{value: d.value * multiplier, scale: targetScale}
 	}
 	
-	// Need to remove decimal places (truncate)
 	diff := d.scale - targetScale
 	divisor := uint64(math.Pow10(int(diff)))
 	return Decimal{value: d.value / divisor, scale: targetScale}
