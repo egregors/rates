@@ -1,10 +1,22 @@
 package rates
 
 import (
+	"log"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
+
+// Package-level logger for decimal operations
+var decimalLogger Logger = log.New(os.Stdout, "[DECIMAL] ", log.LstdFlags)
+
+// SetDecimalLogger sets the logger for decimal operations
+func SetDecimalLogger(l Logger) {
+	if l != nil {
+		decimalLogger = l
+	}
+}
 
 // Decimal represents a decimal number with arbitrary precision
 type Decimal struct {
@@ -27,6 +39,7 @@ func NewDecimalFromString(s string) Decimal {
 	s = strings.TrimSpace(s)
 	
 	if s == "" {
+		decimalLogger.Printf("[WARN] empty string provided to NewDecimalFromString, returning zero")
 		return Decimal{value: 0, scale: 0}
 	}
 
@@ -34,6 +47,7 @@ func NewDecimalFromString(s string) Decimal {
 	if dotIndex == -1 {
 		val, err := strconv.ParseUint(s, 10, 64)
 		if err != nil {
+			decimalLogger.Printf("[ERROR] failed to parse integer string '%s': %v", s, err)
 			return Decimal{value: 0, scale: 0}
 		}
 		return Decimal{value: val, scale: 0}
@@ -53,6 +67,7 @@ func NewDecimalFromString(s string) Decimal {
 	if scale == 0 {
 		val, err := strconv.ParseUint(intPart, 10, 64)
 		if err != nil {
+			decimalLogger.Printf("[ERROR] failed to parse integer part '%s': %v", intPart, err)
 			return Decimal{value: 0, scale: 0}
 		}
 		return Decimal{value: val, scale: 0}
@@ -61,6 +76,7 @@ func NewDecimalFromString(s string) Decimal {
 	combined := intPart + fracPart
 	val, err := strconv.ParseUint(combined, 10, 64)
 	if err != nil {
+		decimalLogger.Printf("[ERROR] failed to parse combined number '%s': %v", combined, err)
 		return Decimal{value: 0, scale: 0}
 	}
 
@@ -119,6 +135,7 @@ func (d Decimal) Mul(other Decimal) Decimal {
 		}
 		newValue = newValue / divisor
 		newScale = 18
+		decimalLogger.Printf("[WARN] precision loss in multiplication, scale reduced from %d to %d", d.scale+other.scale, newScale)
 	}
 	
 	return Decimal{value: newValue, scale: newScale}
@@ -147,6 +164,12 @@ func (d Decimal) Sub(other Decimal) Decimal {
 	
 	d1 := d.normalize(maxScale)
 	d2 := other.normalize(maxScale)
+	
+	// Handle negative result (underflow)
+	if d1.value < d2.value {
+		decimalLogger.Printf("[WARN] subtraction would result in negative value, clamping to zero: %d - %d", d1.value, d2.value)
+		return Decimal{value: 0, scale: maxScale}
+	}
 	
 	newValue := d1.value - d2.value
 	
