@@ -39,9 +39,9 @@ func NewDecimalFromString(s string) Decimal {
 		// No decimal point, it's a whole number
 		val, err := strconv.ParseUint(s, 10, 64)
 		if err != nil {
-			return Decimal{value: 0, scale: 0}
+			return Decimal{value: 0, scale: 0}, fmt.Errorf("failed to parse integer part: %v", err)
 		}
-		return Decimal{value: val, scale: 0}
+		return Decimal{value: val, scale: 0}, nil
 	}
 
 	// Split into integer and fractional parts
