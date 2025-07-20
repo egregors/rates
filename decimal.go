@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+const (
+	// MaxDecimalScale is the maximum number of decimal places supported
+	MaxDecimalScale = 18
+)
+
 // Package-level logger for decimal operations
 var decimalLogger Logger = log.New(os.Stdout, "[DECIMAL] ", log.LstdFlags)
 
