@@ -127,14 +127,14 @@ func (d Decimal) Mul(other Decimal) Decimal {
 	newValue := d.value * other.value
 	newScale := d.scale + other.scale
 	
-	if newScale > 18 { // Max practical scale
-		excess := newScale - 18
+	if newScale > MaxDecimalScale { // Max practical scale
+		excess := newScale - MaxDecimalScale
 		divisor := uint64(1)
 		for i := uint8(0); i < excess; i++ {
 			divisor *= 10
 		}
 		newValue = newValue / divisor
-		newScale = 18
+		newScale = MaxDecimalScale
 		decimalLogger.Printf("[WARN] precision loss in multiplication, scale reduced from %d to %d", d.scale+other.scale, newScale)
 	}
 	
