@@ -28,14 +28,14 @@ func TestWithLogger(t *testing.T) {
 func TestWithCache(t *testing.T) {
 	// if WithCache is not called, the default cache is used
 	assert.NotNil(t, New(nil).cache)
-	assert.IsType(t, &cache.InMem[map[string]float64]{}, New(nil).cache)
+	assert.IsType(t, &cache.InMem[map[string]Decimal]{}, New(nil).cache)
 
 	//if WithCache is called, the cache is used
-	c := cache.NewInMem[map[string]float64](69)
+	c := cache.NewInMem[map[string]Decimal](69)
 	assert.Equal(t, c, New(nil, WithCache(c)).cache)
-	assert.IsType(t, &cache.InMem[map[string]float64]{}, New(nil, WithCache(c)).cache)
+	assert.IsType(t, &cache.InMem[map[string]Decimal]{}, New(nil, WithCache(c)).cache)
 
 	// if WithCache is called with nil, the default cache is used
 	assert.NotNil(t, New(nil, WithCache(nil)).cache)
-	assert.IsType(t, &cache.Noop[map[string]float64]{}, New(nil, WithCache(nil)).cache)
+	assert.IsType(t, &cache.Noop[map[string]Decimal]{}, New(nil, WithCache(nil)).cache)
 }

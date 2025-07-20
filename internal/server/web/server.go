@@ -111,7 +111,7 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := s.c.Conv(amount, from, to)
+	res, err := s.c.Conv(rates.NewDecimal(amount), from, to)
 	if err != nil {
 		s.l.Printf("failed to convert: %v", err)
 		errMsg = fmt.Sprintf("failed to convert: %v", err)
@@ -119,7 +119,7 @@ func (s *Server) getRatesAndHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("%.2f %s is %.2f %s", amount, from, res, to))
+	s.pushToHistory(r.RemoteAddr, from, to, fmt.Sprintf("%.2f %s is %.2f %s", amount, from, res.Float64(), to))
 }
 
 func (s *Server) pushToHistory(key, from, to, text string) {

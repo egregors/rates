@@ -15,7 +15,7 @@ type Conv struct {
 	currencies map[string]string
 
 	l     Logger
-	cache Cache[map[string]float64]
+	cache Cache[map[string]Decimal]
 }
 
 func New(providers []Source, opts ...Options) *Conv {
@@ -25,7 +25,7 @@ func New(providers []Source, opts ...Options) *Conv {
 
 	defaultOpts := []Options{
 		WithLogger(log.New(os.Stdout, "", log.LstdFlags)),
-		WithCache(cache.NewInMem[map[string]float64](6 * time.Hour)),
+		WithCache(cache.NewInMem[map[string]Decimal](6 * time.Hour)),
 		WithStrategy(Failover),
 	}
 
@@ -50,19 +50,19 @@ func New(providers []Source, opts ...Options) *Conv {
 	return r
 }
 
-func (c *Conv) Conv(amount float64, from, to string) (float64, error) {
+func (c *Conv) Conv(amount Decimal, from, to string) (Decimal, error) {
 	// get from cache
 	rFrom, hasFrom := c.cache.Get(from)
 	if hasFrom {
 		rTo, hasTo := rFrom[to]
 		if hasTo {
-			c.l.Printf("[INFO] hit rates cache: %s -> %s = %f", from, to, rTo)
-			return amount * rTo, nil
+			c.l.Printf("[INFO] hit rates cache: %s -> %s = %s", from, to, rTo.String())
+			return amount.Mul(rTo), nil
 		}
 	}
 
 	if !hasFrom {
-		rFrom = make(map[string]float64)
+		rFrom = make(map[string]Decimal)
 	}
 
 	// get from source pool
@@ -79,27 +79,27 @@ func (c *Conv) Conv(amount float64, from, to string) (float64, error) {
 			rFrom[to] = r
 			c.cache.Set(from, rFrom)
 
-			c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
+			c.l.Printf("[INFO] call rates source api: %s -> %s = %s", from, to, r.String())
 
-			return amount * r, nil
+			return amount.Mul(r), nil
 		}
 
-		return 0, fmt.Errorf("failed to get rate: %w", fmt.Errorf("all sources failed"))
+		return NewDecimal(0), fmt.Errorf("failed to get rate: %w", fmt.Errorf("all sources failed"))
 	// just take first source from pool
 	default:
 		r, err := c.pool[0].Rate(from, to)
 		if err != nil {
 			c.l.Printf("[ERROR] can't get rate: %v", err)
-			return 0, fmt.Errorf("failed to get rate: %w", err)
+			return NewDecimal(0), fmt.Errorf("failed to get rate: %w", err)
 		}
 
 		rFrom[to] = r
 		c.cache.Set(from, rFrom)
 
-		c.cache.Set(from, map[string]float64{to: r})
-		c.l.Printf("[INFO] call rates source api: %s -> %s = %f", from, to, r)
+		c.cache.Set(from, map[string]Decimal{to: r})
+		c.l.Printf("[INFO] call rates source api: %s -> %s = %s", from, to, r.String())
 
-		return amount * r, nil
+		return amount.Mul(r), nil
 	}
 }
 
